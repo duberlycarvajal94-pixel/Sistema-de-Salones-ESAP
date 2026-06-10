@@ -1,0 +1,1602 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Préstamo de Salones — ESAP</title>
+<style>
+/* ══ PANTALLA ACCESO ══ */
+#pantallaAcceso{
+  position:fixed;inset:0;
+  background:linear-gradient(135deg,#0f2540 0%,#1a3a5c 60%,#0d9488 100%);
+  display:flex;align-items:center;justify-content:center;z-index:9999;
+}
+.login-box{
+  background:#fff;border-radius:18px;padding:40px 36px;width:380px;max-width:93vw;
+  box-shadow:0 24px 80px rgba(0,0,0,.45);text-align:center;
+}
+.login-logo{font-size:52px;margin-bottom:8px;}
+.login-box h2{font-size:20px;font-weight:800;color:#1a3a5c;margin-bottom:4px;}
+.login-box p{font-size:13px;color:#64748b;margin-bottom:22px;}
+.login-box input{
+  width:100%;padding:11px 14px;border:2px solid #e2e8f0;border-radius:9px;
+  font-size:15px;text-align:center;letter-spacing:3px;outline:none;
+  transition:border .2s;margin-bottom:11px;font-family:inherit;
+}
+.login-box input:focus{border-color:#0d9488;}
+.login-box .btn-login{
+  width:100%;padding:12px;background:#0d9488;color:#fff;border:none;
+  border-radius:9px;font-size:15px;font-weight:700;cursor:pointer;transition:.2s;
+}
+.login-box .btn-login:hover{background:#0a7367;}
+.login-error{color:#dc2626;font-size:12px;margin-top:7px;display:none;}
+.login-error.on{display:block;}
+
+/* ══ VARIABLES ══ */
+:root{
+  --navy:#1a3a5c;--navy2:#0f2540;--teal:#0d9488;--teal2:#0a7367;
+  --bg:#eef2f7;--card:#fff;--border:#cfd8e8;--txt:#1e293b;--muted:#64748b;
+  --libre-bg:#dcfce7;--libre-t:#14532d;--libre-b:#4ade80;
+  --diu-bg:#fef3c7; --diu-t:#78350f; --diu-b:#f59e0b;
+  --noc-bg:#ede9fe; --noc-t:#3730a3; --noc-b:#818cf8;
+  --rsv-bg:#fee2e2; --rsv-t:#991b1b; --rsv-b:#f87171;
+  --pen-bg:#fef9c3; --pen-t:#713f12; --pen-b:#fbbf24;
+  --apt-bg:#e0f2fe; --apt-t:#075985; --apt-b:#38bdf8;
+  --pos-bg:#fce7f3; --pos-t:#831843; --pos-b:#f472b6;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--txt);}
+button{cursor:pointer;font-family:inherit;}
+
+/* ══ HEADER ══ */
+header{
+  background:var(--navy);color:#fff;padding:9px 14px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.35);
+  gap:8px;flex-wrap:wrap;
+}
+header h1{font-size:14px;font-weight:700;display:flex;align-items:center;gap:7px;flex-shrink:0;}
+.sync-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  background:rgba(255,255,255,.12);border-radius:999px;
+  padding:2px 9px;font-size:11px;font-weight:600;
+}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.dot.verde{background:#4ade80;animation:pulso 2s infinite;}
+.dot.rojo{background:#f87171;}
+.dot.ama{background:#fbbf24;}
+@keyframes pulso{0%,100%{opacity:1;}50%{opacity:.35;}}
+.hdr-r{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+
+/* ══ BOTONES ══ */
+.btn{padding:6px 13px;border:none;border-radius:7px;font-size:12px;font-weight:600;transition:.15s;cursor:pointer;white-space:nowrap;}
+.btn-teal{background:var(--teal);color:#fff;}.btn-teal:hover{background:var(--teal2);}
+.btn-ghost{background:rgba(255,255,255,.13);color:#d1fae5;border:1px solid rgba(255,255,255,.22);}.btn-ghost:hover{background:rgba(255,255,255,.21);}
+.btn-red{background:#dc2626;color:#fff;}.btn-red:hover{background:#b91c1c;}
+.btn-gray{background:#f1f5f9;color:var(--navy);border:1px solid var(--border);}.btn-gray:hover{background:#e2e8f0;}
+.btn-amber{background:#f59e0b;color:#fff;}.btn-amber:hover{background:#d97706;}
+
+/* ══ BANNER PROGRAMACIONES CARGADAS ══ */
+#bannerProg{
+  background:#1e3a5f;color:#e0f2fe;padding:7px 14px;
+  font-size:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+.prog-chip{
+  display:inline-flex;align-items:center;gap:5px;
+  border-radius:999px;padding:3px 10px;font-size:11px;font-weight:700;
+}
+.chip-pre{background:#fef3c7;color:#78350f;}
+.chip-pos{background:#fce7f3;color:#831843;}
+.chip-apt{background:#e0f2fe;color:#075985;}
+.chip-otro{background:#f1f5f9;color:#1e293b;}
+.chip-del{
+  background:none;border:none;color:inherit;cursor:pointer;
+  font-size:14px;line-height:1;padding:0 2px;opacity:.7;
+}
+.chip-del:hover{opacity:1;}
+
+/* ══ KPI ══ */
+.kpi-bar{display:flex;gap:7px;padding:8px 14px;flex-wrap:wrap;background:var(--navy2);}
+.kpi{background:rgba(255,255,255,.1);border-radius:8px;padding:6px 12px;min-width:95px;}
+.kpi-v{font-size:20px;font-weight:800;color:#fff;line-height:1;}
+.kpi-l{font-size:10px;color:#94a3b8;margin-top:2px;}
+.kpi.verde .kpi-v{color:#4ade80;}.kpi.ama .kpi-v{color:#fbbf24;}
+.kpi.vio .kpi-v{color:#818cf8;}.kpi.roj .kpi-v{color:#f87171;}
+.kpi.cel .kpi-v{color:#38bdf8;}.kpi.ros .kpi-v{color:#f472b6;}
+
+/* ══ TOOLBAR ══ */
+.toolbar{
+  background:var(--card);border-bottom:1px solid var(--border);
+  padding:7px 14px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;
+}
+.tab{padding:4px 11px;border-radius:6px;border:1px solid var(--border);
+  background:#f8fafc;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;}
+.tab.on{background:var(--navy);color:#fff;border-color:var(--navy);}
+.ctrl{padding:5px 8px;border-radius:6px;border:1px solid var(--border);
+  background:#fff;font-size:12px;color:var(--txt);outline:none;font-family:inherit;}
+.ctrl:focus{border-color:var(--teal);}
+.sep{width:1px;height:20px;background:var(--border);margin:0 2px;}
+.lbl{font-size:11px;color:var(--muted);white-space:nowrap;font-weight:600;}
+
+/* ══ LEYENDA ══ */
+.leyenda{
+  display:flex;gap:12px;flex-wrap:wrap;padding:6px 14px;
+  background:#fff;border-bottom:1px solid var(--border);font-size:11px;
+}
+.ley{display:flex;align-items:center;gap:4px;font-weight:700;}
+.ley-dot{width:13px;height:13px;border-radius:3px;flex-shrink:0;}
+
+/* ══ CONTENIDO ══ */
+#wrap{padding:12px 14px 40px;}
+
+/* ══ GRILLA ══ */
+.grilla-scroll{overflow-x:auto;}
+table.grilla{border-collapse:separate;border-spacing:0;min-width:700px;width:100%;font-size:11px;}
+table.grilla th{
+  background:var(--navy);color:#fff;text-align:center;
+  padding:6px 3px;font-weight:700;white-space:nowrap;
+  border:1px solid #2a527a;position:sticky;top:0;z-index:2;
+}
+table.grilla th:first-child{
+  position:sticky;left:0;z-index:3;min-width:130px;
+  text-align:left;padding-left:9px;
+}
+table.grilla tbody td:first-child{
+  background:#f0f4fb;font-weight:700;color:var(--navy);
+  position:sticky;left:0;z-index:1;border-right:3px solid var(--border);
+  padding:5px 9px;white-space:nowrap;font-size:11px;
+}
+table.grilla tbody tr:hover td{filter:brightness(.97);}
+.cel{border:1px solid var(--border);vertical-align:top;min-width:85px;transition:background .22s;}
+.c-libre{background:var(--libre-bg);cursor:pointer;}.c-libre:hover{background:#a7f3d0!important;}
+.c-diu{background:var(--diu-bg);cursor:pointer;}.c-diu:hover{background:#fde68a!important;}
+.c-noc{background:var(--noc-bg);cursor:pointer;}.c-noc:hover{background:#c7d2fe!important;}
+.c-apt{background:var(--apt-bg);cursor:pointer;}.c-apt:hover{background:#bae6fd!important;}
+.c-pos{background:var(--pos-bg);cursor:pointer;}.c-pos:hover{background:#fbcfe8!important;}
+.c-rsv{background:var(--rsv-bg);cursor:pointer;}.c-rsv:hover{background:#fca5a5!important;}
+.c-pen{background:var(--pen-bg);cursor:pointer;}.c-pen:hover{background:#fef08a!important;}
+@keyframes celNueva{0%{opacity:.3;transform:scale(.95);}100%{opacity:1;transform:scale(1);}}
+.nueva{animation:celNueva .35s ease;}
+.cel-in{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:62px;padding:4px 3px;text-align:center;gap:2px;
+}
+.cel-ico{font-size:15px;line-height:1;}
+.cel-txt{font-size:10px;line-height:1.25;word-break:break-word;max-width:110px;font-weight:700;}
+.cel-sub{font-size:9px;opacity:.78;line-height:1.2;max-width:110px;}
+.cel-tag{
+  font-size:9px;font-weight:800;border-radius:999px;padding:1px 6px;margin-top:1px;
+}
+
+/* ══ LISTA ══ */
+.lista{display:flex;flex-direction:column;gap:7px;}
+.lcard{
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:10px 14px;display:flex;align-items:center;gap:12px;
+  box-shadow:0 1px 4px rgba(0,0,0,.05);
+}
+.lcard.libre{border-left:4px solid var(--libre-b);}
+.lcard.diu{border-left:4px solid var(--diu-b);}
+.lcard.noc{border-left:4px solid var(--noc-b);}
+.lcard.apt{border-left:4px solid var(--apt-b);}
+.lcard.pos{border-left:4px solid var(--pos-b);}
+.lcard.rsv{border-left:4px solid var(--rsv-b);}
+.lcard.pen{border-left:4px solid var(--pen-b);}
+.lnum{width:46px;height:46px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.lnum.libre{background:var(--libre-bg);}.lnum.diu{background:var(--diu-bg);}
+.lnum.noc{background:var(--noc-bg);}.lnum.apt{background:var(--apt-bg);}
+.lnum.pos{background:var(--pos-bg);}.lnum.rsv{background:var(--rsv-bg);}
+.linf{flex:1;min-width:0;}
+.linf h3{font-size:13px;font-weight:700;margin-bottom:2px;}
+.linf p{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.lbadge{padding:2px 9px;border-radius:999px;font-size:10px;font-weight:700;white-space:nowrap;flex-shrink:0;}
+.b-libre{background:var(--libre-bg);color:var(--libre-t);border:1px solid var(--libre-b);}
+.b-diu{background:var(--diu-bg);color:var(--diu-t);border:1px solid var(--diu-b);}
+.b-noc{background:var(--noc-bg);color:var(--noc-t);border:1px solid var(--noc-b);}
+.b-apt{background:var(--apt-bg);color:var(--apt-t);border:1px solid var(--apt-b);}
+.b-pos{background:var(--pos-bg);color:var(--pos-t);border:1px solid var(--pos-b);}
+.b-rsv{background:var(--rsv-bg);color:var(--rsv-t);border:1px solid var(--rsv-b);}
+.b-pen{background:var(--pen-bg);color:var(--pen-t);border:1px solid var(--pen-b);}
+.lac{display:flex;gap:5px;flex-shrink:0;}
+
+/* ══ OVERLAY / PANEL ══ */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);
+  z-index:500;align-items:center;justify-content:center;}
+.overlay.open{display:flex;}
+.panel{
+  background:#fff;border-radius:14px;width:490px;max-width:96vw;
+  max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);
+  animation:panIn .2s ease;
+}
+@keyframes panIn{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+.panhdr{background:var(--navy);color:#fff;padding:13px 17px;border-radius:14px 14px 0 0;
+  display:flex;align-items:center;justify-content:space-between;}
+.panhdr h2{font-size:14px;font-weight:700;}
+.pclose{background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer;line-height:1;}
+.pclose:hover{color:#fff;}
+.panbody{padding:16px;}
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:11px;font-weight:700;color:var(--muted);
+  margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em;}
+.field input,.field select,.field textarea{
+  width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:7px;
+  font-size:13px;color:var(--txt);outline:none;font-family:inherit;transition:border .15s;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--teal);}
+.field textarea{resize:vertical;min-height:52px;}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.panfoot{padding:12px 17px;border-top:1px solid var(--border);display:flex;gap:7px;justify-content:flex-end;}
+.alerta{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;
+  border-radius:8px;padding:9px 12px;font-size:12px;margin-bottom:11px;display:none;}
+.alerta.on{display:block;}
+.drow{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid #f1f5f9;align-items:flex-start;}
+.drow:last-child{border-bottom:none;}
+.dlbl{min-width:100px;font-size:11px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.03em;flex-shrink:0;}
+.dval{font-size:13px;}
+
+/* ══ PANEL CARGA EXCEL ══ */
+.drop-zone{
+  border:2px dashed var(--teal);border-radius:12px;padding:28px 20px;
+  text-align:center;cursor:pointer;transition:.2s;background:#f0fdf9;
+  margin-bottom:14px;
+}
+.drop-zone:hover,.drop-zone.drag{background:#ccfbf1;border-color:var(--teal2);}
+.drop-zone p{font-size:13px;color:var(--muted);margin-top:6px;}
+.archivos-lista{display:flex;flex-direction:column;gap:7px;margin-bottom:12px;}
+.archivo-item{
+  display:flex;align-items:center;gap:10px;padding:9px 12px;
+  background:#f8fafc;border:1px solid var(--border);border-radius:8px;
+}
+.archivo-item .ai-ico{font-size:20px;flex-shrink:0;}
+.archivo-item .ai-inf{flex:1;min-width:0;}
+.archivo-item .ai-nom{font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.archivo-item .ai-det{font-size:11px;color:var(--muted);}
+.archivo-item .ai-tip select{
+  padding:3px 7px;border:1px solid var(--border);border-radius:5px;
+  font-size:11px;font-weight:700;outline:none;
+}
+.archivo-item .ai-del{background:none;border:none;color:#f87171;font-size:17px;cursor:pointer;padding:2px;}
+.info-box{
+  background:#eff6ff;border:1px solid #93c5fd;border-radius:9px;
+  padding:11px 13px;font-size:12px;color:#1e40af;margin-bottom:12px;
+}
+.info-box ul{padding-left:16px;margin-top:5px;display:flex;flex-direction:column;gap:3px;}
+.warn-box{
+  background:#fff7ed;border:1px solid #fdba74;border-radius:9px;
+  padding:11px 13px;font-size:12px;color:#7c2d12;margin-bottom:12px;
+}
+
+/* ══ SPINNER ══ */
+.spinner{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.3);
+  border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ══ TOAST ══ */
+.toast-wrap{position:fixed;bottom:16px;right:16px;z-index:999;display:flex;flex-direction:column;gap:5px;}
+.tst{padding:10px 15px;border-radius:10px;color:#fff;font-size:12px;font-weight:600;
+  box-shadow:0 4px 16px rgba(0,0,0,.22);animation:tIn .22s ease;max-width:310px;}
+.tst.ok{background:#065f46;}.tst.err{background:#991b1b;}.tst.warn{background:#78350f;}.tst.info{background:#1e40af;}
+@keyframes tIn{from{opacity:0;transform:translateX(26px);}to{opacity:1;transform:translateX(0);}}
+
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:#f1f5f9;}
+::-webkit-scrollbar-thumb{background:#c0cfe0;border-radius:99px;}
+
+@media(max-width:600px){
+  header h1{font-size:12px;}
+  .kpi-v{font-size:17px;}.kpi{min-width:80px;}
+  .leyenda{gap:8px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ PANTALLA ACCESO ══ -->
+<div id="pantallaAcceso">
+  <div class="login-box">
+    <div class="login-logo">🏫</div>
+    <h2>Sistema de Salones ESAP</h2>
+    <p>Ingrese la contraseña para acceder</p>
+    <input type="password" id="inputClave" placeholder="Contraseña"
+      onkeydown="if(event.key==='Enter')validarAcceso()"/>
+    <button class="btn-login" onclick="validarAcceso()">Ingresar →</button>
+    <div class="login-error" id="loginError">❌ Contraseña incorrecta</div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="appPrincipal" style="display:none">
+
+<header>
+  <h1>🏫 Préstamo de Salones — ESAP
+    <span class="sync-badge" id="syncBadge">
+      <span class="dot ama" id="syncDot"></span>
+      <span id="syncTxt">Conectando…</span>
+    </span>
+  </h1>
+  <div class="hdr-r">
+    <button class="btn btn-amber" onclick="abrirCargaExcel()">
+      📂 Cargar Programación
+    </button>
+    <button class="btn btn-ghost" onclick="exportar()">⬇ Exportar</button>
+    <button class="btn btn-teal" onclick="abrirNueva()">＋ Nueva Reserva</button>
+  </div>
+</header>
+
+<!-- Banner chips de programaciones cargadas -->
+<div id="bannerProg" style="display:none">
+  <span style="font-weight:700;white-space:nowrap">📋 Programaciones activas:</span>
+  <div id="chipsWrap" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+</div>
+
+<!-- KPIs -->
+<div class="kpi-bar">
+  <div class="kpi"><div class="kpi-v" id="kTot">0</div><div class="kpi-l">Aulas</div></div>
+  <div class="kpi verde"><div class="kpi-v" id="kLib">0</div><div class="kpi-l">🟢 Libres</div></div>
+  <div class="kpi ama"><div class="kpi-v" id="kDiu">0</div><div class="kpi-l">🟡 Pregrado</div></div>
+  <div class="kpi vio"><div class="kpi-v" id="kNoc">0</div><div class="kpi-l">🟣 Noc/Pos</div></div>
+  <div class="kpi cel"><div class="kpi-v" id="kApt">0</div><div class="kpi-l">🔵 APT</div></div>
+  <div class="kpi roj"><div class="kpi-v" id="kRsv">0</div><div class="kpi-l">🔴 Reservas</div></div>
+</div>
+
+<!-- Toolbar -->
+<div class="toolbar">
+  <div style="display:flex;gap:4px;">
+    <button class="tab on" data-v="grilla">⊞ Grilla</button>
+    <button class="tab" data-v="lista">☰ Lista</button>
+  </div>
+  <div class="sep"></div>
+  <span class="lbl">Fecha:</span>
+  <input type="date" class="ctrl" id="ctrlFecha" style="width:142px"/>
+  <button class="btn btn-gray" id="btnPrev" style="padding:4px 8px">◀</button>
+  <button class="btn btn-gray" id="btnHoy" style="font-size:11px">Hoy</button>
+  <button class="btn btn-gray" id="btnNext" style="padding:4px 8px">▶</button>
+  <div class="sep"></div>
+  <span class="lbl">Franja:</span>
+  <select class="ctrl" id="ctrlFranja" style="width:122px">
+    <option value="">Todas</option>
+    <option value="m">Mañana (06–13h)</option>
+    <option value="t">Tarde (13–18h)</option>
+    <option value="n">Noche (18–22h)</option>
+  </select>
+  <span class="lbl">Modalidad:</span>
+  <select class="ctrl" id="ctrlModalidad" style="width:122px">
+    <option value="">Todas</option>
+    <option value="Pregrado">Pregrado</option>
+    <option value="Posgrado">Posgrado</option>
+    <option value="APT">APT</option>
+  </select>
+  <span class="lbl">Ver:</span>
+  <select class="ctrl" id="ctrlFiltro" style="width:110px">
+    <option value="">Todas las aulas</option>
+    <option value="libre">Solo libres</option>
+    <option value="ocup">Solo ocupadas</option>
+  </select>
+</div>
+
+<!-- Leyenda -->
+<div class="leyenda">
+  <div class="ley"><div class="ley-dot" style="background:var(--libre-b)"></div>Libre</div>
+  <div class="ley"><div class="ley-dot" style="background:var(--diu-b)"></div>Pregrado Diurno</div>
+  <div class="ley"><div class="ley-dot" style="background:var(--noc-b)"></div>Pregrado Nocturno / Posgrado</div>
+  <div class="ley"><div class="ley-dot" style="background:var(--apt-b)"></div>APT</div>
+  <div class="ley"><div class="ley-dot" style="background:var(--rsv-b)"></div>Reserva confirmada</div>
+  <div class="ley"><div class="ley-dot" style="background:var(--pen-b)"></div>Reserva pendiente</div>
+</div>
+
+<div id="wrap">
+  <!-- Mensaje cuando no hay programación -->
+  <div id="msgVacio" style="text-align:center;padding:60px 20px;color:var(--muted)">
+    <div style="font-size:52px;margin-bottom:12px;opacity:.3">📂</div>
+    <div style="font-size:16px;font-weight:700;margin-bottom:8px">No hay programación cargada</div>
+    <div style="font-size:13px;margin-bottom:20px">
+      Haga clic en <strong>"Cargar Programación"</strong> para agregar<br>
+      los Excel de Pregrado, Posgrado, APT u otras modalidades.
+    </div>
+    <button class="btn btn-teal" style="font-size:13px;padding:9px 22px"
+      onclick="abrirCargaExcel()">📂 Cargar Programación</button>
+  </div>
+  <div id="vGrilla" class="grilla-scroll" style="display:none"></div>
+  <div id="vLista" class="lista" style="display:none"></div>
+</div>
+
+</div><!-- /app -->
+
+<!-- ══ PANEL CARGA DE EXCELS ══ -->
+<div class="overlay" id="ovExcel">
+  <div class="panel" style="width:540px">
+    <div class="panhdr">
+      <h2>📂 Cargar Programación de Salones</h2>
+      <button class="pclose" onclick="cerrar('ovExcel')">✕</button>
+    </div>
+    <div class="panbody">
+
+      <div class="info-box">
+        <strong>Puede cargar varios archivos a la vez</strong> — uno por modalidad.
+        El sistema detecta las columnas automáticamente, sin importar si el Excel
+        es de Pregrado, Posgrado, APT u otra modalidad.
+        <ul>
+          <li>Seleccione el tipo de cada archivo antes de confirmar</li>
+          <li>Puede agregar o quitar archivos individualmente</li>
+          <li>Las reservas existentes <strong>no se borran</strong></li>
+        </ul>
+      </div>
+
+      <!-- Zona de arrastre -->
+      <div class="drop-zone" id="dropZone"
+        onclick="document.getElementById('filePickerExcel').click()"
+        ondragover="ev.preventDefault();this.classList.add('drag')"
+        ondragleave="this.classList.remove('drag')"
+        ondrop="onDrop(event)">
+        <div style="font-size:36px">📄</div>
+        <strong>Haga clic o arrastre los archivos aquí</strong>
+        <p>Puede seleccionar varios .xlsx al mismo tiempo</p>
+      </div>
+      <input type="file" id="filePickerExcel" accept=".xlsx,.xls" multiple style="display:none"
+        onchange="onFilePick(event)"/>
+
+      <!-- Lista de archivos seleccionados -->
+      <div id="archivosList" class="archivos-lista" style="display:none"></div>
+
+      <div class="warn-box" id="warnReemplazar" style="display:none">
+        📅 Al confirmar, la programación vigente actual será <strong>reemplazada</strong>
+        por los nuevos archivos. Use esto cuando inicie un nuevo período (semestre,
+        interperiodo, etc.). Las <strong>reservas adicionales se conservan</strong>.
+      </div>
+    </div>
+    <div class="panfoot">
+      <button class="btn btn-gray" onclick="cerrar('ovExcel')">Cancelar</button>
+      <button class="btn btn-teal" id="btnConfExcel" onclick="confirmarCargaExcel()" disabled>
+        ✔ Aplicar Programación
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PANEL NUEVA / EDITAR RESERVA ══ -->
+<div class="overlay" id="ovRsv">
+  <div class="panel">
+    <div class="panhdr">
+      <h2 id="panTit">📅 Nueva Reserva</h2>
+      <button class="pclose" onclick="cerrar('ovRsv')">✕</button>
+    </div>
+    <div class="panbody">
+      <div class="alerta" id="alerta"></div>
+      <div class="field">
+        <label>Evento / Actividad *</label>
+        <input id="fEv" type="text" placeholder="Ej: Reunión de Consejo Académico"/>
+      </div>
+      <div class="r2">
+        <div class="field"><label>Responsable *</label>
+          <input id="fRes" type="text" placeholder="Nombre completo"/></div>
+        <div class="field"><label>Dependencia / Área *</label>
+          <input id="fDep" type="text" list="ldep" placeholder="Ej: Decanatura"/>
+          <datalist id="ldep">
+            <option value="Decanatura"><option value="Bienestar Universitario">
+            <option value="Registro y Control"><option value="Gestión Humana">
+            <option value="Biblioteca"><option value="Dirección Académica">
+            <option value="GIM"><option value="Rectoría"><option value="Control Interno">
+          </datalist>
+        </div>
+      </div>
+      <div class="field"><label>Aula *</label>
+        <select id="fAula"><option value="">— Seleccione —</option></select></div>
+      <div class="r2">
+        <div class="field"><label>Fecha *</label><input id="fFec" type="date"/></div>
+        <div class="field"><label>Estado</label>
+          <select id="fEst">
+            <option value="confirmada">✅ Confirmada</option>
+            <option value="pendiente">⏳ Pendiente</option>
+          </select>
+        </div>
+      </div>
+      <div class="r2">
+        <div class="field"><label>Hora inicio *</label><input id="fHI" type="time" step="1800"/></div>
+        <div class="field"><label>Hora fin *</label><input id="fHF" type="time" step="1800"/></div>
+      </div>
+      <div class="field"><label>Observaciones</label>
+        <textarea id="fObs" placeholder="Opcional"></textarea></div>
+    </div>
+    <div class="panfoot">
+      <button class="btn btn-red" id="btnDel" style="display:none" onclick="eliminar()">🗑 Eliminar</button>
+      <button class="btn btn-gray" onclick="cerrar('ovRsv')">Cancelar</button>
+      <button class="btn btn-teal" id="btnGuardar" onclick="guardar()">✔ Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PANEL DETALLE ══ -->
+<div class="overlay" id="ovDet">
+  <div class="panel">
+    <div class="panhdr">
+      <h2 id="detTit">📋 Detalle</h2>
+      <button class="pclose" onclick="cerrar('ovDet')">✕</button>
+    </div>
+    <div class="panbody" id="detBody"></div>
+    <div class="panfoot">
+      <button class="btn btn-gray" onclick="cerrar('ovDet')">Cerrar</button>
+      <button class="btn btn-teal" id="btnEdDet" style="display:none">✏ Editar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PANEL GUÍA FIREBASE ══ -->
+<div class="overlay" id="ovGuia">
+  <div class="panel" style="width:540px">
+    <div class="panhdr">
+      <h2>⚙️ Configurar Firebase (sincronización en tiempo real)</h2>
+      <button class="pclose" onclick="cerrar('ovGuia')">✕</button>
+    </div>
+    <div class="panbody" style="font-size:13px;line-height:1.75">
+      <div class="info-box" style="margin-bottom:14px">
+        Firebase es el servicio <strong>gratuito de Google</strong> que permite que todos
+        vean las reservas en tiempo real desde cualquier dispositivo.
+      </div>
+      <ol style="padding-left:18px;display:flex;flex-direction:column;gap:9px;">
+        <li>Vaya a <a href="https://console.firebase.google.com" target="_blank"
+          style="color:var(--teal);font-weight:700">console.firebase.google.com</a>
+          e inicie sesión con su cuenta Google.</li>
+        <li><strong>Crear proyecto</strong> → nombre: <code>salones-esap</code>
+          → desactive Analytics → Crear.</li>
+        <li>Menú izquierdo: <strong>Compilación → Realtime Database →
+          Crear base de datos → Modo de prueba → Habilitar.</strong></li>
+        <li>Copie la URL que aparece:<br>
+          <code style="background:#f1f5f9;padding:3px 8px;border-radius:4px;display:block;margin-top:4px">
+          https://salones-esap-xxxxx-default-rtdb.firebaseio.com</code></li>
+        <li>Abra este archivo HTML con el <strong>Bloc de notas</strong>,
+          busque la línea:<br>
+          <code style="background:#fef9c3;padding:3px 8px;border-radius:4px;display:block;margin-top:4px">
+          const FIREBASE_URL = '';</code>
+          y pegue la URL entre las comillas. Guarde.</li>
+        <li>Comparta el archivo HTML por correo, WhatsApp o súbalo a OneDrive.</li>
+      </ol>
+      <div style="background:#f0fdf4;border:1px solid #4ade80;border-radius:8px;padding:11px;margin-top:14px;font-size:12px">
+        🔐 <strong>Contraseña actual:</strong>
+        <code style="background:#dcfce7;padding:1px 6px;border-radius:3px">esap2026</code>
+        — Para cambiarla busque <code>CLAVE_ACCESO</code> en el HTML.
+      </div>
+    </div>
+    <div class="panfoot">
+      <button class="btn btn-gray" onclick="cerrar('ovGuia')">Cerrar</button>
+      <a href="https://console.firebase.google.com" target="_blank"
+        class="btn btn-teal" style="text-decoration:none">Ir a Firebase →</a>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- Firebase + SheetJS -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<script>
+/* ══════════════════════════════════════════════════════
+   ╔════════════════════════════════════════════════╗
+   ║  CONFIGURACIÓN — EDITE ESTOS DOS VALORES      ║
+   ╚════════════════════════════════════════════════╝
+   FIREBASE_URL : URL de su Realtime Database de Firebase
+   CLAVE_ACCESO : contraseña de ingreso a la app
+══════════════════════════════════════════════════════ */
+const FIREBASE_URL = '';           // ← PEGUE SU URL AQUÍ
+const CLAVE_ACCESO = 'esap2026';  // ← CAMBIE LA CONTRASEÑA AQUÍ
+/* ══════════════════════════════════════════════════════ */
+
+/* ══ FRANJAS HORARIAS ══ */
+const FRANJAS = [
+  '06:00','07:00','08:00','09:00','10:00','11:00','12:00',
+  '13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00'
+];
+
+/* ══ HELPERS BÁSICOS — declarados primero para que estén disponibles globalmente ══ */
+function fmtD(d)      { return d.toISOString().slice(0, 10); }
+function strD(s)      { return new Date(s + 'T12:00:00'); }
+function addD(s, n)   { const d = strD(s); d.setDate(d.getDate() + n); return fmtD(d); }
+function esL(s)       { const w = strD(s).getDay(); return w >= 1 && w <= 5; }
+function pad(n)       { return String(n).padStart(2, '0'); }
+function tm(s)        { const [h, m] = s.split(':').map(Number); return h * 60 + m; }
+function solapa(a1,a2,b1,b2) { return tm(a1) < tm(b2) && tm(a2) > tm(b1); }
+function sigF(f)      { const i = FRANJAS.indexOf(f); return i >= 0 && i < FRANJAS.length - 1 ? FRANJAS[i + 1] : '22:00'; }
+function trunc(s, n)  { return s && s.length > n ? s.slice(0, n) + '…' : (s || ''); }
+function rsvArr()     { return Object.values(RSV); }
+function nomDia(s)    { return ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'][strD(s).getDay()]; }
+function mesL(s) {
+  const [y, m, d] = s.split('-').map(Number);
+  const M = 'enero,febrero,marzo,abril,mayo,junio,julio,agosto,septiembre,octubre,noviembre,diciembre'.split(',');
+  return `${d} de ${M[m - 1]} de ${y}`;
+}
+function fmtCorta(s) {
+  if (!s) return '';
+  const [y, m, d] = s.split('-');
+  return `${d}/${m}/${y}`;
+}
+function normAula(s) {
+  const u = s.toUpperCase();
+  if (u === 'NANETI' || u.includes('NANETY') || u.includes('GUILLERMO')) return 'Guillermo Nanety';
+  if (u.includes('ALFONSO')) return 'Alfonso López';
+  if (u.includes('ALBERTO')) return 'Alberto Lleras';
+  return s;
+}
+function parseHora(v) {
+  if (!v && v !== 0) return null;
+  if (v instanceof Date) return pad(v.getHours()) + ':' + pad(v.getMinutes());
+  if (typeof v === 'number') {
+    const tot = Math.round(v * 24 * 60);
+    return pad(Math.floor(tot / 60)) + ':' + pad(tot % 60);
+  }
+  const m = String(v).match(/(\d{1,2}):(\d{2})/);
+  return m ? pad(parseInt(m[1])) + ':' + m[2] : null;
+}
+function parseFecha(v) {
+  if (!v) return null;
+  if (v instanceof Date) return new Date(v.getFullYear(), v.getMonth(), v.getDate());
+  if (typeof v === 'number') {
+    const d = XLSX.SSF.parse_date_code(v);
+    return d ? new Date(d.y, d.m - 1, d.d) : null;
+  }
+  const s = String(v).trim().slice(0, 10);
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); }
+  const dt = new Date(v);
+  return isNaN(dt) ? null : new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+}
+
+/* ══ ESTADO GLOBAL ══ */
+let CLS   = [];   // todas las clases de todos los Excel cargados
+let AULAS = [];   // aulas únicas
+let PROGS = [];   // programaciones cargadas [{nombre, modalidad, clases:[]}]
+let RSV   = {};   // reservas Firebase {key: obj}
+let FECHA = fmtD(new Date());
+
+/* ══════════════════════════════════════════════════════
+   PROGRAMACIÓN PREDETERMINADA — INTERPERIODO 2026 ESAP
+   (Pregrado AP — Diurna y Nocturna + EP Nocturna)
+   Se carga automáticamente al ingresar. Puede reemplazarse
+   en cualquier momento con el botón "Cargar Programación".
+══════════════════════════════════════════════════════ */
+(function cargarDatosIniciales() {
+  const FI = '2026-06-23', FF = '2026-07-14';
+  const mk = (a, hi, hf, n, d, j, p) => ({
+    aula:a, modalidad: j==='Diurna'?'Pregrado':'Pregrado', jornada:j, programa:p||'AP',
+    tipo:'INTERPERIODO', asignatura:n, docente:d, hi, hf, fi:FI, ff:FF, dia:'L-V',
+    color: j==='Diurna' ? 'c-diu' : 'c-noc'
+  });
+
+  CLS = [
+    // ── DIURNA ──
+    mk('102','14:00','18:00','Historia de la Administración Pública','LEON DUITAMA JAVIER','Diurna'),
+    mk('103','08:00','12:00','Matemáticas II','MENESES MEJIA JUAN DOMINGO','Diurna'),
+    mk('303','08:00','12:00','Estadística II','VARGAS BARRERA RAFAEL','Diurna'),
+    mk('105','08:00','12:00','Matemáticas I','ROJAS CUERVO ANGELA MARCELA','Diurna'),
+    mk('106','09:00','13:00','Gestión del territorio Colombiano','MORENO REINA JHON HUMBERTO','Diurna'),
+    mk('202','08:00','12:00','Planeación pública II','CESPEDES GOMEZ VICTOR HUGO','Diurna'),
+    mk('203','09:00','13:00','Macroeconomía y Política Económica','RAMOS BORDA HARRY ESTEBAN','Diurna'),
+    mk('204','09:00','13:00','Problemática pública Colombiana contemporánea','CRUZ PAEZ FABIO ORLANDO','Diurna'),
+    mk('205','08:00','12:00','Seminario de investigación','REYES GOMEZ JUAN DAVID','Diurna'),
+    mk('206','09:00','13:00','Control de la gestión pública','VERA JAIMES RODRIGO ALONSO','Diurna'),
+    mk('301','09:00','13:00','Estadística I','RAMIREZ HERNANDEZ NUMAEL','Diurna'),
+    mk('208','07:00','11:00','Seminario el oficio del consultor','GAMBOA SOTAQUIRA ORLANDO','Diurna'),
+    mk('Alfonso López','08:00','12:00','Gestión de servicios públicos','TORRES RODRIGUEZ ARGEMIRO','Diurna'),
+    mk('305','14:00','18:00','Planeación pública I','LAZALA SILVA RAUL ERNESTO','Diurna'),
+    mk('306','08:00','12:00','Función pública Colombiana y comparada','MORALES PAYARES CASTULO','Diurna'),
+    mk('305','09:00','13:00','Presupuestos públicos','CLEVES GONZALEZ LUIS JAVIER','Diurna'),
+    mk('201','08:00','12:00','Teorías del Estado y Regímenes Políticos','TRUJILLO GUIO ROXANA ALEJANDRA','Diurna'),
+    mk('Guillermo Nanety','09:00','13:00','Idiomas III','CASTELLANOS MACIAS HENRY EDUARDO','Diurna'),
+    mk('207','08:00','12:00','Idiomas IV','ZORRO IMELDA','Diurna'),
+    mk('104','09:00','13:00','Proyectos de desarrollo','ORTEGON CAMPO JULIO CESAR','Diurna'),
+    // ── NOCTURNA AP ──
+    mk('102','18:00','22:00','Derecho constitucional','GOMEZ ROLDAN ANDRES','Nocturna'),
+    mk('103','18:00','22:00','Matemáticas I','ROJAS CUERVO ANGELA MARCELA','Nocturna'),
+    mk('104','18:00','22:00','Matemáticas II','PUELLO GARCIA JOSE LUIS','Nocturna'),
+    mk('303','18:00','22:00','Estadística I','MONTENEGRO CASTRO CLAUDIA PATRICIA','Nocturna'),
+    mk('304','18:00','22:00','Estadística II','VARGAS BARRERA RAFAEL','Nocturna'),
+    mk('105','18:00','22:00','Matemáticas Lúdicas','CONTENTO RUBIO MANUEL RICARDO','Nocturna'),
+    mk('108','18:00','22:00','Finanzas y análisis financiero público','BELTRAN MARTIN SERGIO AUGUSTO','Nocturna'),
+    mk('201','18:00','22:00','Teorías del Estado y Regímenes Políticos','LEON DUITAMA JAVIER','Nocturna'),
+    mk('202','18:00','22:00','Gestión del territorio Colombiano','HINCAPIE RODRIGUEZ JEISON ANDRES','Nocturna'),
+    mk('203','18:00','22:00','Planeación pública I','DELGADO JEREZ DIANA','Nocturna'),
+    mk('204','18:00','22:00','Planeación pública II','CESPEDES GOMEZ VICTOR HUGO','Nocturna'),
+    mk('205','18:00','22:00','Derecho III','ESCOBAR OCHOA RAÚL','Nocturna'),
+    mk('206','18:00','22:00','Políticas públicas','RAMIREZ SHUPINGAHUA MARCO ANTONIO','Nocturna'),
+    mk('207','18:00','22:00','Macroeconomía y Política Económica','MALPICA CARDENAS SEBASTIAN','Nocturna'),
+    mk('208','18:00','22:00','Idiomas III','RODRIGUEZ FORERO CEYMY DE LOS ANGELES','Nocturna'),
+    mk('305','18:00','22:00','Idiomas IV','ZORRO IMELDA','Nocturna'),
+    mk('Guillermo Nanety','18:00','22:00','Organización Estatal Colombiana','ALBA GRIMALDOS JAVIER ALFONSO','Nocturna'),
+    mk('306','18:00','22:00','Historia social y política de la adm. pública colombiana II','GALEANO ESCUCHA LUIS ALBERTO','Nocturna'),
+    // ── EP Nocturna ──
+    mk('Alberto Lleras','14:00','17:00','Calculo Integral - Probabilidad','PUELLO GARCIA JOSE LUIS','Nocturna','EP'),
+    mk('Alberto Lleras','18:00','21:00','Algebra Lineal y Cálculo','MENESES MEJIA JUAN DOMINGO','Nocturna','EP'),
+  ];
+
+  PROGS = [{
+    nombre:   'INTERPERIODO 2026 (Jun 23 – Jul 14)',
+    modalidad:'Pregrado',
+    total:    CLS.length,
+    fi: FI, ff: FF,
+  }];
+
+  // Construir lista de aulas
+  AULAS = [...new Set(CLS.map(c => c.aula))].sort((a, b) => {
+    const na = isNaN(a), nb = isNaN(b);
+    if (!na && !nb) return +a - +b;
+    if (na  && nb)  return a.localeCompare(b, 'es');
+    return na ? 1 : -1;
+  });
+
+  // Apuntar la fecha al inicio del interperiodo
+  FECHA = FI;
+})();
+let VISTA = 'grilla';
+let EDID  = null;
+let dbRef = null;
+let modoLocal = false;
+
+/* ══ BUFFER CARGA EXCEL ══ */
+let bufArchivos = []; // [{file, nombre, modalidad, clases:[]}]
+
+/* ══════════════════════════════════════════════════════
+   ACCESO
+══════════════════════════════════════════════════════ */
+function validarAcceso() {
+  const v = document.getElementById('inputClave').value.trim();
+  if (v === CLAVE_ACCESO) {
+    document.getElementById('pantallaAcceso').style.display = 'none';
+    document.getElementById('appPrincipal').style.display  = 'block';
+    iniciarFirebase();
+  } else {
+    document.getElementById('loginError').classList.add('on');
+    document.getElementById('inputClave').value = '';
+    document.getElementById('inputClave').focus();
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   FIREBASE
+══════════════════════════════════════════════════════ */
+function iniciarFirebase() {
+  // Mostrar la programación predeterminada inmediatamente
+  actualizarBannerProgs();
+  // Actualizar select de aulas en modal
+  document.getElementById('fAula').innerHTML =
+    '<option value="">— Seleccione un aula —</option>' +
+    AULAS.map(a => `<option value="${a}">${a}</option>`).join('');
+  // Fijar fecha en el input
+  document.getElementById('ctrlFecha').value = FECHA;
+
+  if (!FIREBASE_URL) {
+    modoLocal = true;
+    setSyncStatus('⚠️ Sin Firebase (local)', 'ama');
+    try {
+      const s = localStorage.getItem('esap_rsv');
+      if (s) JSON.parse(s).forEach(r => { RSV[r.id] = r; });
+    } catch(e) {}
+    actualizarVista();
+    return;
+  }
+  const app = firebase.initializeApp({ databaseURL: FIREBASE_URL });
+  dbRef = firebase.database(app).ref('reservas');
+  setSyncStatus('Conectando…', 'ama');
+  dbRef.on('value', snap => {
+    RSV = {};
+    const d = snap.val();
+    if (d) Object.keys(d).forEach(k => { RSV[k] = d[k]; });
+    setSyncStatus('🟢 En tiempo real', 'verde');
+    render();
+  }, () => {
+    setSyncStatus('❌ Sin conexión', 'rojo');
+    toast('Error de conexión con Firebase.', 'err');
+  });
+}
+
+function setSyncStatus(txt, tipo) {
+  document.getElementById('syncDot').className = 'dot ' + tipo;
+  document.getElementById('syncTxt').textContent = txt;
+}
+
+/* ══════════════════════════════════════════════════════
+   LECTOR INTELIGENTE DE EXCEL
+   Detecta columnas por nombre sin importar el orden,
+   mayúsculas, tildes ni espacios extra.
+══════════════════════════════════════════════════════ */
+function normCol(s) {
+  return String(s).trim().toLowerCase()
+    .replace(/á/g,'a').replace(/é/g,'e').replace(/í/g,'i')
+    .replace(/ó/g,'o').replace(/ú/g,'u').replace(/ñ/g,'n')
+    .replace(/\s+/g,' ');
+}
+
+/* Busca el índice de columna que contenga alguna de las palabras clave */
+function findCol(hdrs, ...keywords) {
+  return hdrs.findIndex(h => keywords.some(k => normCol(h).includes(normCol(k))));
+}
+
+function leerExcel(file, modalidad) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const wb  = XLSX.read(e.target.result, { type: 'binary', cellDates: true });
+        const ws  = wb.Sheets[wb.SheetNames[0]];
+        const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+        /* Buscar fila de encabezados: la que tenga más texto */
+        const hdrIdx = raw.reduce((best, row, i) => {
+          const score = row.filter(c => String(c).trim().length > 2).length;
+          return score > best.score ? { i, score } : best;
+        }, { i: 0, score: 0 }).i;
+
+        const hdrs = raw[hdrIdx];
+
+        /* Mapeo flexible de columnas */
+        const iAula = findCol(hdrs, 'aula','salon','salón','espacio');
+        const iJorn = findCol(hdrs, 'jornada');
+        const iProg = findCol(hdrs, 'programa','carrera');
+        const iTipo = findCol(hdrs, 'tipo de oferta','tipo oferta','oferta');
+        const iAsig = findCol(hdrs, 'asignatura','materia','curso','actividad');
+        const iDoc  = findCol(hdrs, 'nombre docente','docente','profesor','instructor');
+        const iHI   = findCol(hdrs, 'hora inicio','hora_inicio','inicio');
+        const iHF   = findCol(hdrs, 'hora fin','hora_fin','fin','termina');
+        const iFI   = findCol(hdrs, 'fecha inicio','fecha_inicio','inicio asig','desde');
+        const iFF   = findCol(hdrs, 'fecha fin','fecha_fin','fin asig','hasta');
+        const iDia  = findCol(hdrs, 'dia','día','días','days');
+
+        if (iAula < 0) { reject('No se encontró columna "Aula" en ' + file.name); return; }
+        if (iAsig < 0) { reject('No se encontró columna "Asignatura" en ' + file.name); return; }
+        if (iHI   < 0) { reject('No se encontró "Hora Inicio" en ' + file.name); return; }
+        if (iHF   < 0) { reject('No se encontró "Hora Fin" en ' + file.name); return; }
+
+        const clases = [];
+        let fi = null, ff = null;
+
+        for (let r = hdrIdx + 1; r < raw.length; r++) {
+          const row = raw[r];
+          if (!row || row.every(c => !String(c).trim())) continue;
+
+          const aula = normAula(String(row[iAula] ?? '').trim());
+          if (!aula) continue;
+
+          const hi = parseHora(row[iHI]);
+          const hf = parseHora(row[iHF]);
+          if (!hi || !hf) continue;
+
+          /* Fechas: si no hay columna de fecha, usar el período por defecto */
+          const fIx = iFI >= 0 ? parseFecha(row[iFI]) : null;
+          const fFx = iFF >= 0 ? parseFecha(row[iFF]) : null;
+          const fiStr = fIx ? fmtD(fIx) : '2026-01-01';
+          const ffStr = fFx ? fmtD(fFx) : '2026-12-31';
+
+          if (fIx && (!fi || fIx < fi)) fi = fIx;
+          if (fFx && (!ff || fFx > ff)) ff = fFx;
+
+          /* Detectar modalidad automáticamente si no se indicó */
+          const jornada = String(row[iJorn] ?? '').trim() || 'Diurna';
+          const prog    = String(row[iProg] ?? '').trim() || modalidad;
+          const tipo    = iTipo >= 0 ? String(row[iTipo] ?? '').trim() : '';
+
+          /* Color según modalidad real */
+          const colorCel = resolverColor(modalidad, jornada, tipo);
+
+          clases.push({
+            aula,
+            modalidad,        // etiqueta del usuario (Pregrado/Posgrado/APT/Otro)
+            jornada,
+            programa: prog,
+            tipo,
+            asignatura: String(row[iAsig] ?? '').trim(),
+            docente:    String(row[iDoc]  ?? '').trim(),
+            hi, hf,
+            fi: fiStr,
+            ff: ffStr,
+            dia: iDia >= 0 ? String(row[iDia] ?? 'L-V').trim() : 'L-V',
+            color: colorCel,
+          });
+        }
+
+        resolve({ clases, fi, ff, nombre: file.name });
+      } catch(err) {
+        reject('Error al leer ' + file.name + ': ' + err.message);
+      }
+    };
+    reader.onerror = () => reject('No se pudo leer ' + file.name);
+    reader.readAsBinaryString(file);
+  });
+}
+
+/* Determina la clase CSS de color según modalidad y jornada */
+function resolverColor(modalidad, jornada, tipo) {
+  const m = normCol(modalidad);
+  const j = normCol(jornada);
+  const t = normCol(tipo);
+  if (m.includes('apt') || t.includes('apt')) return 'c-apt';
+  if (m.includes('posgrado') || m.includes('postgrado') || m.includes('esp') || m.includes('maes') || m.includes('doct')) return 'c-noc';
+  if (j.includes('noct')) return 'c-noc';
+  return 'c-diu';
+}
+
+/* ══════════════════════════════════════════════════════
+   PANEL CARGA DE EXCELS
+══════════════════════════════════════════════════════ */
+function abrirCargaExcel() {
+  bufArchivos = [];
+  renderArchivosList();
+  document.getElementById('ovExcel').classList.add('open');
+}
+
+function onFilePick(e) {
+  agregarArchivos([...e.target.files]);
+  e.target.value = '';
+}
+
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById('dropZone').classList.remove('drag');
+  agregarArchivos([...e.dataTransfer.files].filter(f => /\.xlsx?$/i.test(f.name)));
+}
+
+function agregarArchivos(files) {
+  files.forEach(f => {
+    if (!bufArchivos.find(b => b.nombre === f.nombre)) {
+      /* Detectar modalidad por nombre de archivo */
+      const n = normCol(f.name);
+      let modalidad = 'Otro';
+      if (n.includes('pregr') || n.includes('pre_gr')) modalidad = 'Pregrado';
+      else if (n.includes('posgr') || n.includes('pos_gr') || n.includes('esp') || n.includes('maest')) modalidad = 'Posgrado';
+      else if (n.includes('apt')) modalidad = 'APT';
+      bufArchivos.push({ file: f, nombre: f.name, modalidad, clases: [] });
+    }
+  });
+  renderArchivosList();
+}
+
+function renderArchivosList() {
+  const lista = document.getElementById('archivosList');
+  const warn  = document.getElementById('warnReemplazar');
+  const btn   = document.getElementById('btnConfExcel');
+
+  if (!bufArchivos.length) {
+    lista.style.display = 'none';
+    warn.style.display  = 'none';
+    btn.disabled = true;
+    return;
+  }
+
+  lista.style.display = 'flex';
+  warn.style.display  = CLS.length ? 'block' : 'none';
+  btn.disabled = false;
+
+  lista.innerHTML = bufArchivos.map((b, i) => `
+    <div class="archivo-item">
+      <div class="ai-ico">📄</div>
+      <div class="ai-inf">
+        <div class="ai-nom" title="${b.nombre}">${b.nombre}</div>
+        <div class="ai-det">Seleccione la modalidad →</div>
+      </div>
+      <div class="ai-tip">
+        <select onchange="bufArchivos[${i}].modalidad=this.value;renderArchivosList()">
+          <option value="Pregrado"  ${b.modalidad==='Pregrado' ?'selected':''}>📘 Pregrado</option>
+          <option value="Posgrado"  ${b.modalidad==='Posgrado' ?'selected':''}>🎓 Posgrado</option>
+          <option value="APT"       ${b.modalidad==='APT'      ?'selected':''}>🔵 APT</option>
+          <option value="Otro"      ${b.modalidad==='Otro'     ?'selected':''}>📋 Otro</option>
+        </select>
+      </div>
+      <button class="ai-del" onclick="bufArchivos.splice(${i},1);renderArchivosList()" title="Quitar">✕</button>
+    </div>`).join('');
+}
+
+async function confirmarCargaExcel() {
+  if (!bufArchivos.length) return;
+
+  const btn = document.getElementById('btnConfExcel');
+  btn.innerHTML = '<span class="spinner"></span> Procesando…';
+  btn.disabled  = true;
+
+  try {
+    const resultados = await Promise.all(
+      bufArchivos.map(b => leerExcel(b.file, b.modalidad))
+    );
+
+    /* Construir nueva lista de clases (reemplaza todo) */
+    CLS   = [];
+    PROGS = [];
+
+    resultados.forEach((res, i) => {
+      CLS.push(...res.clases);
+      PROGS.push({
+        nombre:    bufArchivos[i].nombre,
+        modalidad: bufArchivos[i].modalidad,
+        total:     res.clases.length,
+        fi:        res.fi ? fmtD(res.fi) : null,
+        ff:        res.ff ? fmtD(res.ff) : null,
+      });
+    });
+
+    reconstruirAulas();
+
+    /* Ir al primer día del período más temprano */
+    const primFecha = PROGS.map(p => p.fi).filter(Boolean).sort()[0];
+    if (primFecha) {
+      FECHA = primFecha;
+      document.getElementById('ctrlFecha').value = FECHA;
+    }
+
+    cerrar('ovExcel');
+    actualizarBannerProgs();
+    actualizarVista();
+
+    const tot  = CLS.length;
+    const mods = [...new Set(PROGS.map(p => p.modalidad))].join(', ');
+    const per  = PROGS[0]?.fi && PROGS[0]?.ff
+      ? ` · Período: ${fmtCorta(PROGS[0].fi)} – ${fmtCorta(PROGS[0].ff)}`
+      : '';
+    toast(`✅ Nueva programación cargada — ${tot} clases (${mods})${per}`, 'ok');
+
+  } catch(err) {
+    toast('❌ ' + err, 'err');
+  } finally {
+    btn.innerHTML = '✔ Aplicar Programación';
+    btn.disabled  = false;
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   BANNER CHIPS DE PROGRAMACIONES
+══════════════════════════════════════════════════════ */
+function actualizarBannerProgs() {
+  const banner = document.getElementById('bannerProg');
+  const chips  = document.getElementById('chipsWrap');
+  if (!PROGS.length) { banner.style.display = 'none'; return; }
+  banner.style.display = 'flex';
+
+  const colores = { Pregrado:'chip-pre', Posgrado:'chip-pos', APT:'chip-apt', Otro:'chip-otro' };
+
+  chips.innerHTML = PROGS.map((p, i) => {
+    const periodo = p.fi && p.ff
+      ? ` · ${fmtCorta(p.fi)} – ${fmtCorta(p.ff)}`
+      : '';
+    const total = `${p.total} clases`;
+    return `<span class="prog-chip ${colores[p.modalidad]||'chip-otro'}">
+      📋 ${p.nombre.replace(/\.xlsx?$/i,'').replace(/_/g,' ')} — ${total}${periodo}
+    </span>`;
+  }).join('');
+}
+
+function eliminarProg(idx) {
+  if (!confirm(`¿Quitar la programación "${PROGS[idx].modalidad}" (${PROGS[idx].nombre})?`)) return;
+  const mod = PROGS[idx].modalidad;
+  CLS   = CLS.filter(c => c.modalidad !== mod);
+  PROGS.splice(idx, 1);
+  reconstruirAulas();
+  actualizarBannerProgs();
+  actualizarVista();
+  toast(`Programación ${mod} eliminada.`, 'warn');
+}
+
+/* ══════════════════════════════════════════════════════
+   HELPERS
+══════════════════════════════════════════════════════ */
+function reconstruirAulas() {
+  AULAS = [...new Set(CLS.map(c => c.aula))].sort((a,b) => {
+    const na = isNaN(a), nb = isNaN(b);
+    if (!na && !nb) return +a - +b;
+    if (na  && nb)  return a.localeCompare(b, 'es');
+    return na ? 1 : -1;
+  });
+  /* Actualizar select de aulas en modal reserva */
+  document.getElementById('fAula').innerHTML =
+    '<option value="">— Seleccione un aula —</option>' +
+    AULAS.map(a => `<option value="${a}">${a}</option>`).join('');
+}
+
+/* helpers ya declarados arriba */
+
+/* Busca clase en (aula, fecha, franja) */
+function claseEn(aula, fecha, franja) {
+  if (!esL(fecha)) return null;
+  const fD = strD(fecha), s = sigF(franja);
+  const filtMod = document.getElementById('ctrlModalidad').value;
+  return CLS.find(c =>
+    c.aula === aula &&
+    fD >= strD(c.fi) && fD <= strD(c.ff) &&
+    solapa(c.hi, c.hf, franja, s) &&
+    (!filtMod || c.modalidad === filtMod)
+  ) || null;
+}
+
+/* Busca reserva del usuario en (aula, fecha, franja) */
+function rsvEn(aula, fecha, franja) {
+  const s = sigF(franja);
+  return rsvArr().find(r =>
+    r.aula === aula && r.fecha === fecha && solapa(r.hi, r.hf, franja, s)
+  ) || null;
+}
+
+function estadoCel(aula, fecha, franja) {
+  const r = rsvEn(aula, fecha, franja);
+  if (r) return r.estado === 'pendiente' ? 'pen' : 'rsv';
+  const c = claseEn(aula, fecha, franja);
+  if (c) return c.color || 'c-diu';
+  return 'libre';
+}
+
+/* ══════════════════════════════════════════════════════
+   KPI
+══════════════════════════════════════════════════════ */
+function renderKPI() {
+  const fD = strD(FECHA), esH = esL(FECHA);
+  const filtMod = document.getElementById('ctrlModalidad').value;
+  const cls = esH ? CLS.filter(c =>
+    fD >= strD(c.fi) && fD <= strD(c.ff) &&
+    (!filtMod || c.modalidad === filtMod)
+  ) : [];
+  const diu = cls.filter(c => c.color === 'c-diu').length;
+  const noc = cls.filter(c => c.color === 'c-noc').length;
+  const apt = cls.filter(c => c.color === 'c-apt').length;
+  const ocup = new Set(cls.map(c => c.aula)).size;
+  const rsv  = rsvArr().filter(r => r.fecha === FECHA).length;
+  document.getElementById('kTot').textContent = AULAS.length;
+  document.getElementById('kLib').textContent = Math.max(0, AULAS.length - ocup);
+  document.getElementById('kDiu').textContent = diu;
+  document.getElementById('kNoc').textContent = noc;
+  document.getElementById('kApt').textContent = apt;
+  document.getElementById('kRsv').textContent = rsv;
+}
+
+/* ══════════════════════════════════════════════════════
+   RENDER GRILLA
+══════════════════════════════════════════════════════ */
+function renderGrilla() {
+  const ffVal  = document.getElementById('ctrlFranja').value;
+  const feVal  = document.getElementById('ctrlFiltro').value;
+
+  let FR = FRANJAS;
+  if (ffVal==='m') FR = FRANJAS.filter(f => tm(f) < 13*60);
+  else if (ffVal==='t') FR = FRANJAS.filter(f => tm(f) >= 13*60 && tm(f) < 18*60);
+  else if (ffVal==='n') FR = FRANJAS.filter(f => tm(f) >= 18*60);
+
+  let AU = AULAS;
+  if (feVal==='libre') AU = AULAS.filter(a => FR.some(f => estadoCel(a,FECHA,f)==='libre'));
+  else if (feVal==='ocup') AU = AULAS.filter(a => FR.some(f => estadoCel(a,FECHA,f)!=='libre'));
+
+  const esH = esL(FECHA);
+  const ths = FR.map(f =>
+    `<th>${f}<br><span style="font-size:9px;opacity:.6">${sigF(f)}</span></th>`
+  ).join('');
+
+  /* Iconos y etiquetas por color */
+  const ICO = { 'c-diu':'☀️','c-noc':'🌙','c-apt':'🔵','c-rsv':'📌','c-pen':'⏳','libre':'✚' };
+  const TAG = { 'c-diu':'PRE','c-noc':'NOC/POS','c-apt':'APT' };
+  const TAG_COL = {
+    'c-diu':'background:var(--diu-bg);color:var(--diu-t)',
+    'c-noc':'background:var(--noc-bg);color:var(--noc-t)',
+    'c-apt':'background:var(--apt-bg);color:var(--apt-t)',
+  };
+
+  const filas = AU.map(aula => {
+    const celdas = [];
+    let skip = 0;
+
+    FR.forEach((franja, fi) => {
+      if (skip > 0) { skip--; celdas.push(null); return; }
+
+      const est = estadoCel(aula, FECHA, franja);
+      const r   = (est==='rsv'||est==='pen') ? rsvEn(aula,FECHA,franja) : null;
+      const c   = (est!=='rsv'&&est!=='pen'&&est!=='libre') ? claseEn(aula,FECHA,franja) : null;
+
+      /* Calcular span (bloques continuos) */
+      let span = 1;
+      if (r) {
+        for (let k=fi+1;k<FR.length;k++) {
+          const rx=rsvEn(aula,FECHA,FR[k]);
+          if (rx && rx.id===r.id) span++; else break;
+        }
+      } else if (c) {
+        for (let k=fi+1;k<FR.length;k++) {
+          const cx=claseEn(aula,FECHA,FR[k]);
+          if (cx && cx===c) span++; else break;
+        }
+      }
+      skip = span - 1;
+
+      let cel = '';
+      if (r) {
+        const cls = est==='pen' ? 'c-pen' : 'c-rsv';
+        const ico = est==='pen' ? '⏳' : '📌';
+        cel = `<td class="cel ${cls} nueva" colspan="${span}"
+          onclick="verDet('r','${r.id}')" title="${r.evento}">
+          <div class="cel-in">
+            <div class="cel-ico">${ico}</div>
+            <div class="cel-txt">${trunc(r.evento,20)}</div>
+            <div class="cel-sub">👤 ${trunc(r.responsable,18)}</div>
+            <div class="cel-sub">🏢 ${trunc(r.dependencia,16)}</div>
+            <div class="cel-sub">⏰ ${r.hi}–${r.hf}</div>
+          </div></td>`;
+      } else if (c) {
+        const tagStyle = TAG_COL[c.color] || '';
+        const tagTxt   = TAG[c.color] || c.modalidad.slice(0,3).toUpperCase();
+        const idx = CLS.indexOf(c);
+        cel = `<td class="cel ${c.color}" colspan="${span}"
+          onclick="verDet('c',${idx})" title="${c.asignatura}">
+          <div class="cel-in">
+            <div class="cel-ico">${ICO[c.color]||'📚'}</div>
+            <div class="cel-txt">${trunc(c.asignatura,20)}</div>
+            <div class="cel-sub">👤 ${trunc(c.docente,18)}</div>
+            <div class="cel-sub">⏰ ${c.hi}–${c.hf}</div>
+            <div class="cel-tag" style="${tagStyle}">${tagTxt}</div>
+          </div></td>`;
+      } else {
+        cel = `<td class="cel c-libre" colspan="${span}"
+          onclick="abrirDesde('${aula}','${franja}')" title="Libre">
+          <div class="cel-in">
+            <div class="cel-ico" style="opacity:.5">✚</div>
+            <div class="cel-txt" style="color:var(--libre-t)">LIBRE</div>
+            <div class="cel-sub" style="color:var(--libre-t)">Clic para reservar</div>
+          </div></td>`;
+      }
+      celdas.push(cel);
+    });
+
+    const tieneRsv  = FR.some(f=>{const e=estadoCel(aula,FECHA,f);return e==='rsv'||e==='pen';});
+    const tieneCls  = FR.some(f=>estadoCel(aula,FECHA,f)!=='libre'&&estadoCel(aula,FECHA,f)!=='rsv'&&estadoCel(aula,FECHA,f)!=='pen');
+    const col = tieneRsv?'#991b1b':tieneCls?'#78350f':'#14532d';
+
+    return `<tr>
+      <td style="color:${col}">${aula}</td>
+      ${celdas.filter(x=>x).join('')}
+    </tr>`;
+  }).join('');
+
+  document.getElementById('vGrilla').innerHTML = `
+    <div style="font-weight:700;color:var(--navy);font-size:13px;margin-bottom:9px;
+      padding-bottom:5px;border-bottom:2px solid var(--teal);">
+      ${nomDia(FECHA)}, ${mesL(FECHA)}${!esH?' — Fin de semana':''}
+      ${!CLS.length?' <span style="color:var(--muted);font-weight:400;font-size:11px">— Sin programación cargada</span>':''}
+    </div>
+    <table class="grilla">
+      <thead><tr>
+        <th style="text-align:left;padding-left:9px">Aula / Hora</th>${ths}
+      </tr></thead>
+      <tbody>${filas || '<tr><td colspan="99" style="padding:30px;text-align:center;color:var(--muted)">Sin aulas para mostrar</td></tr>'}</tbody>
+    </table>`;
+}
+
+/* ══════════════════════════════════════════════════════
+   RENDER LISTA
+══════════════════════════════════════════════════════ */
+function renderLista() {
+  const feVal   = document.getElementById('ctrlFiltro').value;
+  const filtMod = document.getElementById('ctrlModalidad').value;
+  const fD = strD(FECHA), esH = esL(FECHA);
+  let items = [];
+
+  if (feVal !== 'libre') {
+    if (esH) {
+      CLS.filter(c =>
+        fD >= strD(c.fi) && fD <= strD(c.ff) &&
+        (!filtMod || c.modalidad === filtMod)
+      ).forEach((c,_) => items.push({ tipo:'clase', c, idx:CLS.indexOf(c) }));
+    }
+    rsvArr().filter(r => r.fecha===FECHA)
+      .forEach(r => items.push({ tipo:'rsv', r }));
+  }
+
+  if (feVal !== 'ocup') {
+    const ocu = new Set([
+      ...CLS.filter(c => esH && fD>=strD(c.fi) && fD<=strD(c.ff)).map(c => c.aula),
+      ...rsvArr().filter(r => r.fecha===FECHA).map(r => r.aula)
+    ]);
+    AULAS.filter(a => !ocu.has(a)).forEach(a => items.push({ tipo:'libre', aula:a }));
+  }
+
+  if (!items.length) {
+    document.getElementById('vLista').innerHTML =
+      `<div style="text-align:center;padding:40px;color:var(--muted)">Sin registros para mostrar.</div>`;
+    return;
+  }
+
+  const LCARD_CLS = { 'c-diu':'diu','c-noc':'noc','c-apt':'apt','c-pos':'pos' };
+  const BADGE_CLS = { 'c-diu':'b-diu','c-noc':'b-noc','c-apt':'b-apt','c-pos':'b-pos' };
+  const BADGE_TXT = { 'c-diu':'DIURNO','c-noc':'NOC/POS','c-apt':'APT','c-pos':'POSGRADO' };
+  const ICO_MAP   = { 'c-diu':'☀️','c-noc':'🌙','c-apt':'🔵','c-pos':'🎓' };
+
+  document.getElementById('vLista').innerHTML = items.map(it => {
+    if (it.tipo==='libre') return `<div class="lcard libre">
+      <div class="lnum libre">🏫</div>
+      <div class="linf"><h3>Aula ${it.aula}</h3><p>Disponible todo el día</p></div>
+      <div class="lac">
+        <span class="lbadge b-libre">LIBRE</span>
+        <button class="btn btn-teal" style="font-size:11px;padding:4px 10px"
+          onclick="abrirDesde('${it.aula}','08:00')">＋ Reservar</button>
+      </div></div>`;
+
+    if (it.tipo==='clase') {
+      const c = it.c;
+      const cc = LCARD_CLS[c.color]||'diu';
+      const bc = BADGE_CLS[c.color]||'b-diu';
+      const bt = BADGE_TXT[c.color]||c.modalidad;
+      const io = ICO_MAP[c.color]||'📚';
+      return `<div class="lcard ${cc}">
+        <div class="lnum ${cc}">${io}</div>
+        <div class="linf">
+          <h3>Aula ${c.aula} — ${c.asignatura}</h3>
+          <p>👤 ${c.docente} · ⏰ ${c.hi}–${c.hf} · ${c.modalidad}/${c.jornada}</p>
+        </div>
+        <div class="lac">
+          <span class="lbadge ${bc}">${bt}</span>
+          <button class="btn btn-gray" style="font-size:11px;padding:4px 10px"
+            onclick="verDet('c',${it.idx})">Ver</button>
+        </div></div>`;
+    }
+
+    if (it.tipo==='rsv') {
+      const r = it.r; const pen = r.estado==='pendiente';
+      return `<div class="lcard ${pen?'pen':'rsv'}">
+        <div class="lnum rsv">${pen?'⏳':'📌'}</div>
+        <div class="linf">
+          <h3>Aula ${r.aula} — ${r.evento}</h3>
+          <p>👤 ${r.responsable} · 🏢 ${r.dependencia} · ⏰ ${r.hi}–${r.hf}</p>
+        </div>
+        <div class="lac">
+          <span class="lbadge ${pen?'b-pen':'b-rsv'}">${r.estado.toUpperCase()}</span>
+          <button class="btn btn-gray" style="font-size:11px;padding:4px 10px"
+            onclick="verDet('r','${r.id}')">Ver</button>
+        </div></div>`;
+    }
+  }).join('');
+}
+
+/* ══════════════════════════════════════════════════════
+   RENDER PRINCIPAL
+══════════════════════════════════════════════════════ */
+function actualizarVista() {
+  const tieneAulas = AULAS.length > 0;
+  document.getElementById('msgVacio').style.display  = tieneAulas ? 'none'  : 'block';
+  document.getElementById('vGrilla').style.display   = (tieneAulas && VISTA === 'grilla') ? 'block' : 'none';
+  document.getElementById('vLista').style.display    = (tieneAulas && VISTA === 'lista')  ? 'flex'  : 'none';
+  if (tieneAulas) render();
+}
+
+function render() {
+  renderKPI();
+  if (VISTA==='grilla') renderGrilla();
+  else renderLista();
+}
+
+/* ══════════════════════════════════════════════════════
+   PANEL NUEVA / EDITAR RESERVA
+══════════════════════════════════════════════════════ */
+function abrirNueva() {
+  EDID = null;
+  document.getElementById('panTit').textContent = '📅 Nueva Reserva';
+  document.getElementById('btnDel').style.display = 'none';
+  document.getElementById('alerta').className = 'alerta';
+  ['fEv','fRes','fDep','fObs'].forEach(i => document.getElementById(i).value='');
+  document.getElementById('fAula').value = '';
+  document.getElementById('fFec').value  = FECHA;
+  document.getElementById('fHI').value   = '08:00';
+  document.getElementById('fHF').value   = '10:00';
+  document.getElementById('fEst').value  = 'confirmada';
+  document.getElementById('ovRsv').classList.add('open');
+}
+
+function abrirDesde(aula, franja) {
+  abrirNueva();
+  document.getElementById('fAula').value = aula;
+  document.getElementById('fHI').value   = franja;
+  document.getElementById('fHF').value   = sigF(franja);
+}
+
+function abrirEditar(fbKey) {
+  const r = RSV[fbKey]; if (!r) return;
+  EDID = fbKey;
+  document.getElementById('panTit').textContent = '✏️ Editar Reserva';
+  document.getElementById('btnDel').style.display = 'inline-block';
+  document.getElementById('alerta').className = 'alerta';
+  document.getElementById('fEv').value   = r.evento;
+  document.getElementById('fRes').value  = r.responsable;
+  document.getElementById('fDep').value  = r.dependencia;
+  document.getElementById('fAula').value = r.aula;
+  document.getElementById('fFec').value  = r.fecha;
+  document.getElementById('fHI').value   = r.hi;
+  document.getElementById('fHF').value   = r.hf;
+  document.getElementById('fEst').value  = r.estado;
+  document.getElementById('fObs').value  = r.obs||'';
+  document.getElementById('ovRsv').classList.add('open');
+}
+
+async function guardar() {
+  const ev    = document.getElementById('fEv').value.trim();
+  const res   = document.getElementById('fRes').value.trim();
+  const dep   = document.getElementById('fDep').value.trim();
+  const aula  = document.getElementById('fAula').value;
+  const fecha = document.getElementById('fFec').value;
+  const hi    = document.getElementById('fHI').value;
+  const hf    = document.getElementById('fHF').value;
+  const est   = document.getElementById('fEst').value;
+  const obs   = document.getElementById('fObs').value.trim();
+
+  if (!ev||!res||!dep||!aula||!fecha||!hi||!hf) {
+    showAlerta('⚠️ Complete todos los campos obligatorios.'); return; }
+  if (hf <= hi) {
+    showAlerta('⚠️ La hora fin debe ser posterior a la de inicio.'); return; }
+
+  /* Conflicto con clase */
+  const fD = strD(fecha);
+  const cc = CLS.find(c =>
+    c.aula===aula && fD>=strD(c.fi) && fD<=strD(c.ff) &&
+    esL(fecha) && solapa(hi,hf,c.hi,c.hf)
+  );
+  if (cc) { showAlerta(`⚠️ Conflicto con "${cc.asignatura}" (${cc.hi}–${cc.hf}).`); return; }
+
+  /* Conflicto con otra reserva */
+  const rc = rsvArr().find(r => {
+    const k = Object.keys(RSV).find(k => RSV[k]===r);
+    return k!==EDID && r.aula===aula && r.fecha===fecha && solapa(hi,hf,r.hi,r.hf);
+  });
+  if (rc) { showAlerta(`⚠️ Conflicto con reserva "${rc.evento}" (${rc.hi}–${rc.hf}).`); return; }
+
+  document.getElementById('alerta').className = 'alerta';
+  const btn = document.getElementById('btnGuardar');
+  btn.innerHTML = '<span class="spinner"></span>';
+  btn.disabled  = true;
+
+  const obj = { aula,fecha,hi,hf,evento:ev,responsable:res,dependencia:dep,estado:est,obs,ts:Date.now() };
+
+  try {
+    if (!modoLocal) {
+      if (EDID) { await dbRef.child(EDID).set({...obj,id:EDID}); }
+      else { const nr=dbRef.push(); obj.id=nr.key; await nr.set(obj); }
+      toast(EDID ? '✓ Reserva actualizada' : '✓ Reserva guardada — todos la ven ahora', 'ok');
+    } else {
+      if (EDID) { RSV[EDID]={...obj,id:EDID}; }
+      else { const id='loc_'+Date.now(); obj.id=id; RSV[id]=obj; }
+      localStorage.setItem('esap_rsv', JSON.stringify(rsvArr()));
+      toast('✓ Guardado localmente (configure Firebase para sincronizar)', 'warn');
+      render();
+    }
+    cerrar('ovRsv');
+  } catch(e) {
+    toast('❌ Error al guardar.','err');
+  } finally {
+    btn.innerHTML = '✔ Guardar'; btn.disabled = false;
+  }
+}
+
+async function eliminar() {
+  if (!EDID) return;
+  if (!confirm('¿Eliminar esta reserva?')) return;
+  try {
+    if (!modoLocal) { await dbRef.child(EDID).remove(); }
+    else { delete RSV[EDID]; localStorage.setItem('esap_rsv',JSON.stringify(rsvArr())); render(); }
+    cerrar('ovRsv');
+    toast('Reserva eliminada.','warn');
+  } catch(e) { toast('❌ Error al eliminar.','err'); }
+}
+
+function showAlerta(msg) {
+  const el = document.getElementById('alerta');
+  el.textContent = msg; el.className = 'alerta on';
+}
+
+/* ══════════════════════════════════════════════════════
+   PANEL DETALLE
+══════════════════════════════════════════════════════ */
+function verDet(tipo, id) {
+  let html = '';
+  if (tipo==='c') {
+    const c = CLS[id]; if (!c) return;
+    const COL={'c-diu':'diu','c-noc':'noc','c-apt':'apt'};
+    const ETQ={'c-diu':'Pregrado Diurno','c-noc':'Nocturno / Posgrado','c-apt':'APT'};
+    const badge = `<span style="background:var(--${COL[c.color]||'diu'}-bg);color:var(--${COL[c.color]||'diu'}-t);
+      border:1px solid var(--${COL[c.color]||'diu'}-b);border-radius:999px;padding:2px 10px;font-size:11px;font-weight:700;">
+      ${ETQ[c.color]||c.modalidad}</span>`;
+    html = dr('Asignatura',`<strong>${c.asignatura}</strong>`)
+      + dr('Aula', c.aula)
+      + dr('Modalidad / Jornada', `${badge} ${c.jornada}`)
+      + dr('Programa', c.programa||c.modalidad)
+      + dr('Horario', `${c.hi} – ${c.hf}`)
+      + dr('Docente', c.docente||'—')
+      + dr('Período', `${mesL(c.fi)} → ${mesL(c.ff)}`)
+      + dr('Días', c.dia||'L–V');
+    document.getElementById('btnEdDet').style.display = 'none';
+    document.getElementById('detTit').textContent = '📖 Clase Programada';
+  } else {
+    const r = RSV[id]; if (!r) return;
+    const pen = r.estado==='pendiente';
+    const badge = `<span style="background:var(--${pen?'pen':'rsv'}-bg);color:var(--${pen?'pen':'rsv'}-t);
+      border:1px solid var(--${pen?'pen':'rsv'}-b);border-radius:999px;padding:2px 10px;font-size:11px;font-weight:700;">
+      ${pen?'⏳ Pendiente':'✅ Confirmada'}</span>`;
+    html = dr('Evento',`<strong>${r.evento}</strong>`)
+      + dr('Aula', r.aula) + dr('Fecha', mesL(r.fecha))
+      + dr('Horario',`${r.hi} – ${r.hf}`)
+      + dr('Responsable', r.responsable) + dr('Dependencia', r.dependencia)
+      + dr('Estado', badge) + (r.obs ? dr('Observaciones',r.obs) : '');
+    document.getElementById('btnEdDet').style.display = 'inline-block';
+    document.getElementById('btnEdDet').onclick = () => {
+      cerrar('ovDet'); setTimeout(() => abrirEditar(id), 180); };
+    document.getElementById('detTit').textContent = '📋 Reserva Adicional';
+  }
+  document.getElementById('detBody').innerHTML = html;
+  document.getElementById('ovDet').classList.add('open');
+}
+function dr(l,v) {
+  return `<div class="drow"><span class="dlbl">${l}</span><span class="dval">${v}</span></div>`; }
+
+/* ══════════════════════════════════════════════════════
+   EXPORTAR CSV
+══════════════════════════════════════════════════════ */
+function exportar() {
+  const rows = [['TIPO','MODALIDAD','AULA','FECHA','H.INICIO','H.FIN',
+    'EVENTO/ASIGNATURA','DOCENTE/RESPONSABLE','PROGRAMA/DEPENDENCIA','ESTADO','JORNADA','OBS']];
+  /* Una fila por clase × día hábil */
+  if (CLS.length) {
+    const allFechas = CLS.flatMap(c => {
+      const dias = []; let d = strD(c.fi); const fin = strD(c.ff);
+      while(d<=fin){const f=fmtD(d);if(esL(f))dias.push(f);d.setDate(d.getDate()+1);}
+      return dias.map(f => ({c,f}));
+    });
+    allFechas.forEach(({c,f}) =>
+      rows.push(['CLASE',c.modalidad,c.aula,f,c.hi,c.hf,c.asignatura,c.docente,c.programa,'ACTIVA',c.jornada,''])
+    );
+  }
+  rsvArr().forEach(r =>
+    rows.push(['RESERVA','—',r.aula,r.fecha,r.hi,r.hf,r.evento,r.responsable,r.dependencia,r.estado.toUpperCase(),'',r.obs||''])
+  );
+  const csv = rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download = `SALONES_ESAP_${FECHA}.csv`; a.click();
+  toast('✓ Archivo exportado — ábralo en Excel.','ok');
+}
+
+/* ══════════════════════════════════════════════════════
+   UTILIDADES
+══════════════════════════════════════════════════════ */
+function cerrar(id) { document.getElementById(id).classList.remove('open'); }
+function toast(msg, tipo='ok') {
+  const w = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = `tst ${tipo}`; el.textContent = msg; w.appendChild(el);
+  setTimeout(() => el.remove(), 4500);
+}
+
+/* ══════════════════════════════════════════════════════
+   EVENTOS
+══════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('ctrlFecha').value = FECHA;
+  document.getElementById('inputClave').focus();
+
+  /* Tabs */
+  document.querySelectorAll('.tab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(x => x.classList.remove('on'));
+      t.classList.add('on'); VISTA = t.dataset.v;
+      document.getElementById('vGrilla').style.display = (AULAS.length && VISTA==='grilla') ? 'block' : 'none';
+      document.getElementById('vLista').style.display  = (AULAS.length && VISTA==='lista')  ? 'flex'  : 'none';
+      if (AULAS.length) render();
+    });
+  });
+
+  /* Fecha */
+  document.getElementById('ctrlFecha').addEventListener('change', e => { FECHA=e.target.value; if(AULAS.length)render(); });
+  document.getElementById('btnPrev').addEventListener('click', () => {
+    FECHA=addD(FECHA,-1); document.getElementById('ctrlFecha').value=FECHA; if(AULAS.length)render(); });
+  document.getElementById('btnNext').addEventListener('click', () => {
+    FECHA=addD(FECHA,1); document.getElementById('ctrlFecha').value=FECHA; if(AULAS.length)render(); });
+  document.getElementById('btnHoy').addEventListener('click', () => {
+    FECHA=fmtD(new Date()); document.getElementById('ctrlFecha').value=FECHA; if(AULAS.length)render(); });
+
+  /* Filtros */
+  ['ctrlFranja','ctrlModalidad','ctrlFiltro'].forEach(id =>
+    document.getElementById(id).addEventListener('change', () => { if(AULAS.length)render(); })
+  );
+
+  /* Cerrar overlays con clic fuera */
+  ['ovExcel','ovRsv','ovDet','ovGuia'].forEach(id =>
+    document.getElementById(id).addEventListener('click', e => {
+      if (e.target===e.currentTarget) cerrar(id); })
+  );
+});
+</script>
+</body>
+</html>
