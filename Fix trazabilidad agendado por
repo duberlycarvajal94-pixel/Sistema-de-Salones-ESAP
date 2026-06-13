@@ -1282,10 +1282,14 @@ async function guardarRsv(){
   try{
     if(!modoLocal){if(EDID){await dbRef.child(EDID).set({...obj,id:EDID});}else{const nr=dbRef.push();obj.id=nr.key;await nr.set(obj);}}
     else{if(EDID){RSV[EDID]={...obj,id:EDID};}else{const id='loc_'+Date.now();obj.id=id;RSV[id]=obj;}saveLocal();render();}
-    // Registrar auditoría
-  obj.creadoPor = obj.creadoPor || (USUARIO_ACTUAL ? USUARIO_ACTUAL.nombre : 'Sistema');
-  obj.fechaCreacion = obj.fechaCreacion || fmtD(new Date());
-  if(EDID){ obj.editadoPor = USUARIO_ACTUAL ? USUARIO_ACTUAL.nombre : 'Sistema'; obj.fechaEdicion = fmtD(new Date()); }
+    // Registrar auditoría ANTES de guardar
+  if(!EDID){
+    obj.creadoPor = USUARIO_ACTUAL ? USUARIO_ACTUAL.nombre : 'Sistema';
+    obj.fechaCreacion = fmtD(new Date());
+  } else {
+    obj.editadoPor = USUARIO_ACTUAL ? USUARIO_ACTUAL.nombre : 'Sistema';
+    obj.fechaEdicion = fmtD(new Date());
+  }
   if(!EDID&&obj.estado==='confirmada')await enviarCorreo(obj);
     const ok=document.getElementById('rsvOk');ok.textContent='✅ Reserva '+(EDID?'actualizada':'guardada')+'. Se envió confirmación al correo.';ok.className='alerta-ok on';
     setTimeout(()=>cerrar('ovRsv'),1800);
