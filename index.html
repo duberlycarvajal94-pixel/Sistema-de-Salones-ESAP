@@ -597,7 +597,7 @@ table.grilla tbody tr:hover td{filter:brightness(.97);}
 const CFG={
   FIREBASE_URL:'https://sistema-de-salones-default-rtdb.firebaseio.com',
   CORREO:'gestion.aulas@esap.edu.co',
-  EJS_PUB:'rZ6_XaoCCFBr5WP43', EJS_SVC:'service_rl7oqqi', EJS_TPL:'template_6ig9lhf'
+  EJS_PUB:'rZ6_XaoCCFBr5WP43', EJS_SVC:'service_rl7oqqi', EJS_TPL:'template_30zvow3'
 };
 
 /* USUARIOS DEL SISTEMA
@@ -1295,28 +1295,36 @@ async function guardarRsv(){
 }
 
 async function enviarCorreo(r){
-  const em=correo(r);if(!em)return;
+  const em=correo(r);
+  if(!em){toast('⚠️ Sin correo del solicitante — no se envió confirmación','warn');return;}
   if(!CFG.EJS_PUB||!CFG.EJS_SVC||!CFG.EJS_TPL){toast('ℹ️ EmailJS pendiente de configurar','info');return;}
   try{
     emailjs.init({publicKey: CFG.EJS_PUB});
-    const s=CAT.find(x=>x.id===r.aula)||{n:r.aula,cap:'—'};
-    const eq=Object.entries(s.e||{}).filter(([k,v])=>v).map(([k])=>EN[k]).join(', ')||'Básico';
-    await emailjs.send(CFG.EJS_SVC,CFG.EJS_TPL,{
+    const s=CAT.find(x=>x.id===r.aula)||{n:r.aula,cap:'—',e:{}};
+    const eq=Object.entries(s.e||{}).filter(([k,v])=>v&&EN[k]).map(([k])=>EN[k]).join(', ')||'Equipamiento básico';
+    const params = {
+      to_email:       em,
       email:          em,
-      to_name:        nombre(r),
-      salon:          s.n,
-      capacidad:      s.cap,
+      to_name:        nombre(r)||'Solicitante',
+      from_name:      'Gestión de Aulas ESAP',
+      reply_to:       CFG.CORREO,
+      salon:          s.n||r.aula,
+      capacidad:      String(s.cap||'—'),
       equipamiento:   eq,
-      evento:         r.evento,
+      evento:         r.evento||'—',
       fecha:          mesL(r.fecha),
-      hora_inicio:    r.hi,
-      hora_fin:       r.hf,
-      responsable:    r.responsable||nombre(r),
-      dependencia:    depLabel(r),
+      hora_inicio:    r.hi||'—',
+      hora_fin:       r.hf||'—',
+      responsable:    r.responsable||nombre(r)||'—',
+      dependencia:    depLabel(r)||'—',
       observaciones:  r.obs||'Sin observaciones adicionales.',
-    });
+    };
+    await emailjs.send(CFG.EJS_SVC, CFG.EJS_TPL, params);
     toast('📧 Confirmación enviada a '+em,'ok');
-  }catch(e){toast('⚠️ No se pudo enviar el correo','warn');}
+  }catch(e){
+    console.error('EmailJS error:',e);
+    toast('⚠️ Reserva guardada. Error al enviar correo: '+( e.text||e.message||'verificar configuración EmailJS'),'warn');
+  }
 }
 
 async function eliminarRsv(){
