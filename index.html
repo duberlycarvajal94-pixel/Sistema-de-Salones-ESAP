@@ -284,6 +284,13 @@ table.grilla tbody tr:hover td{filter:brightness(.97);}
     <button class="ntab" data-tab="busqueda"><i class="bi bi-search"></i> Búsqueda Inteligente</button>
   </div>
 
+  <!-- Alerta de reservas pendientes -->
+  <div id="alertaPendientes" style="display:none;background:#7c2d12;color:#fed7aa;padding:8px 16px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:10px;cursor:pointer" onclick="irAPendientes()">
+    <i class="bi bi-bell-fill" style="font-size:16px;animation:pulso 1.5s infinite"></i>
+    <span id="alertaPendTxt">Tiene reservas pendientes de aprobación</span>
+    <span style="margin-left:auto;text-decoration:underline;font-weight:400">Ver ahora →</span>
+  </div>
+
   <div class="banner-prog" id="bannerProg"><i class="bi bi-calendar-check"></i><strong>Programación activa:</strong><div id="bannerChips"></div></div>
 
   <div class="kpi-bar">
@@ -901,6 +908,8 @@ function iniciarApp(){
   document.getElementById('bFecha').value=FECHA;
   rebuildAulas();
   actualizarBanner();
+  // Pedir permiso para notificaciones del navegador
+  setTimeout(pedirPermisoNotificaciones, 2000);
 
   if(!CFG.FIREBASE_URL){modoLocal=true;setSS('⚠️ Modo local','ama');cargarLocal();render();return;}
   try{
@@ -920,6 +929,80 @@ function actualizarBanner(){
   if(!PROGS.length){b.classList.remove('visible');return;}
   b.classList.add('visible');
   c.innerHTML=PROGS.map(p=>'<span class="prog-tag"><i class="bi bi-calendar-check"></i> '+p.n+' — '+p.tot+' clases'+(p.fi&&p.ff?' · '+fC(p.fi)+'–'+fC(p.ff):'')+' </span>').join('');
+}
+
+/* ALERTAS DE PENDIENTES */
+let notifPermiso = false;
+let ultimoContPend = 0;
+
+function verificarPendientes(){
+  const pend = rsvArr().filter(r => r.estado === 'pendiente');
+  const cont = pend.length;
+
+  // Badge en tab historial
+  const badge = document.getElementById('badgePend');
+  if(badge){
+    badge.textContent = cont;
+    badge.style.display = cont > 0 ? 'inline' : 'none';
+  }
+
+  // Banner alerta
+  const alertaBanner = document.getElementById('alertaPendientes');
+  const alertaTxt = document.getElementById('alertaPendTxt');
+  if(alertaBanner){
+    if(cont > 0 && USUARIO_ACTUAL && ['admin','gestor'].includes(USUARIO_ACTUAL.rol)){
+      alertaBanner.style.display = 'flex';
+      alertaTxt.textContent = cont === 1
+        ? '⚠️ Tiene 1 reserva pendiente de aprobación'
+        : '⚠️ Tiene ' + cont + ' reservas pendientes de aprobación';
+    } else {
+      alertaBanner.style.display = 'none';
+    }
+  }
+
+  // Notificación del navegador si hay nuevas pendientes
+  if(cont > ultimoContPend && ultimoContPend >= 0 && document.hidden){
+    enviarNotifNavegador(
+      '🔔 Nueva solicitud pendiente — ESAP',
+      cont + ' reserva(s) esperan aprobación en el Sistema de Salones'
+    );
+  }
+  ultimoContPend = cont;
+}
+
+function irAPendientes(){
+  // Ir al historial y filtrar pendientes
+  const tab = document.querySelector('[data-mt="historial"]');
+  if(tab) tab.click();
+  setTimeout(()=>{
+    const hT = document.getElementById('hT');
+    if(hT){ hT.value = ''; renderHistorial(); }
+  }, 300);
+}
+
+function pedirPermisoNotificaciones(){
+  if(!('Notification' in window)) return;
+  if(Notification.permission === 'granted'){
+    notifPermiso = true;
+  } else if(Notification.permission !== 'denied'){
+    Notification.requestPermission().then(p => {
+      notifPermiso = p === 'granted';
+    });
+  }
+}
+
+function enviarNotifNavegador(titulo, cuerpo){
+  if(!notifPermiso || Notification.permission !== 'granted') return;
+  try{
+    const n = new Notification(titulo, {
+      body: cuerpo,
+      icon: '🏫',
+      badge: '🏫',
+      tag: 'salones-esap-pendiente',
+      requireInteraction: true
+    });
+    n.onclick = () => { window.focus(); irAPendientes(); n.close(); };
+  }catch(e){}
 }
 
 /* KPI */
@@ -1389,6 +1472,7 @@ function actualizarVista(){
 }
 function render(){
   renderKPI();
+  verificarPendientes();
   if(TAB==='grilla'){if(VISTA==='grilla')renderGrilla();else renderLista();}
   else if(TAB==='historial')renderHistorial();
   else if(TAB==='inventario')renderInventario();
