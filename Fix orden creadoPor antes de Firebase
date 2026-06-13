@@ -1279,10 +1279,7 @@ async function guardarRsv(){
   if(rc)return showAlerta('⚠️ Conflicto con reserva "'+rc.evento+'" ('+rc.hi+'–'+rc.hf+').');
   document.getElementById('rsvAlerta').className='alerta-form';
   const btn=document.getElementById('btnGuardar');btn.innerHTML='<span class="spinner"></span>';btn.disabled=true;
-  try{
-    if(!modoLocal){if(EDID){await dbRef.child(EDID).set({...obj,id:EDID});}else{const nr=dbRef.push();obj.id=nr.key;await nr.set(obj);}}
-    else{if(EDID){RSV[EDID]={...obj,id:EDID};}else{const id='loc_'+Date.now();obj.id=id;RSV[id]=obj;}saveLocal();render();}
-    // Registrar auditoría ANTES de guardar
+  // Registrar auditoría ANTES de guardar en Firebase
   if(!EDID){
     obj.creadoPor = USUARIO_ACTUAL ? USUARIO_ACTUAL.nombre : 'Sistema';
     obj.fechaCreacion = fmtD(new Date());
@@ -1290,7 +1287,10 @@ async function guardarRsv(){
     obj.editadoPor = USUARIO_ACTUAL ? USUARIO_ACTUAL.nombre : 'Sistema';
     obj.fechaEdicion = fmtD(new Date());
   }
-  if(!EDID&&obj.estado==='confirmada')await enviarCorreo(obj);
+  try{
+    if(!modoLocal){if(EDID){await dbRef.child(EDID).set({...obj,id:EDID});}else{const nr=dbRef.push();obj.id=nr.key;await nr.set(obj);}}
+    else{if(EDID){RSV[EDID]={...obj,id:EDID};}else{const id='loc_'+Date.now();obj.id=id;RSV[id]=obj;}saveLocal();render();}
+    if(!EDID&&obj.estado==='confirmada')await enviarCorreo(obj);
     const ok=document.getElementById('rsvOk');ok.textContent='✅ Reserva '+(EDID?'actualizada':'guardada')+'. Se envió confirmación al correo.';ok.className='alerta-ok on';
     setTimeout(()=>cerrar('ovRsv'),1800);
     toast(EDID?'✓ Actualizada':'✓ Guardada y confirmación enviada','ok');
